@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VOID SMP 2.0 - Portal Otchłani</title>
+<style>
+    :root {
+        --bg-deep: #030105;
+        --bg-panel: #0a0412;
+        --border-void: #2e1065;
+        --accent-glow: #9333ea;
+        --accent-bright: #c084fc;
+        --text-main: #f3e8ff;
+        --text-muted: #9ca3af;
+    }
+
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+        background-color: var(--bg-deep);
+        color: var(--text-main);
+        min-height: 100vh;
+        display: flex;
+        background-image: 
+            radial-gradient(circle at 10% 20%, rgba(88, 28, 135, 0.15) 0%, transparent 40%),
+            radial-gradient(circle at 90% 80%, rgba(147, 51, 234, 0.1) 0%, transparent 40%);
+        overflow-x: hidden;
+    }
+
+    /* SIDEBAR NAVIGATION */
+    sidebar {
+        width: 280px;
+        background: var(--bg-panel);
+        border-right: 1px solid var(--border-void);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 30px 20px;
+        position: fixed;
+        height: 100vh;
+        z-index: 100;
+        box-shadow: 5px 0 30px rgba(0,0,0,0.8);
+    }
+
+    .brand-area {
+        text-align: center;
+        border-bottom: 1px solid var(--border-void);
+        padding-bottom: 25px;
+    }
+
+    .server-logo {
+        width: 100px;
+        height: auto;
+        filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.6));
+        margin-bottom: 12px;
+    }
+
+    .brand-area h1 {
+        font-size: 1.5rem;
+        color: #e9d5ff;
+        letter-spacing: 2px;
+    }
+
+    .nav-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 30px;
+    }
+
+    .nav-item {
+        background: transparent;
+        border: 1px solid transparent;
+        color: var(--text-muted);
+        padding: 14px 20px;
+        border-radius: 12px;
+        font-weight: 600;
+        text-align: left;
+        cursor: pointer;
+        transition: all 0.25s ease;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 1rem;
+    }
+
+    .nav-item:hover, .nav-item.active {
+        background: linear-gradient(135deg, rgba(126, 34, 206, 0.3), rgba(168, 85, 247, 0.2));
+        border-color: var(--accent-glow);
+        color: #fff;
+        box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
+    }
+
+    .sidebar-footer {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-align: center;
+        border-top: 1px solid var(--border-void);
+        padding-top: 15px;
+    }
+
+    /* MAIN CONTENT AREA */
+    main {
+        margin-left: 280px;
+        flex-grow: 1;
+        padding: 40px;
+        max-width: 1300px;
+    }
+
+    .section-view {
+        display: none;
+        animation: fadeIn 0.4s ease-in-out;
+    }
+
+    .section-view.active {
+        display: block;
+    }
+
+    h2.page-title {
+        font-size: 2.5rem;
+        color: #e9d5ff;
+        margin-bottom: 10px;
+        text-shadow: 0 0 20px rgba(168, 85, 247, 0.4);
+    }
+
+    p.page-desc {
+        color: var(--text-muted);
+        margin-bottom: 35px;
+        font-size: 1.1rem;
+    }
+
+    /* STORE GRID */
+    .grid-container {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+
+    .card {
+        background: linear-gradient(145deg, #0d0617, #07020d);
+        border: 1px solid var(--border-void);
+        border-radius: 16px;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+        cursor: pointer;
+    }
+
+    .card:hover {
+        transform: translateY(-6px);
+        border-color: var(--accent-bright);
+        box-shadow: 0 0 25px rgba(168, 85, 247, 0.35);
+    }
+
+    .card.featured {
+        border-color: var(--accent-bright);
+        background: linear-gradient(145deg, #18092f, #0a0314);
+    }
+
+    .card-badge {
+        position: absolute;
+        top: -12px;
+        right: 20px;
+        background: #7e22ce;
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: bold;
+        padding: 4px 12px;
+        border-radius: 20px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .item-name {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+        margin-bottom: 5px;
+    }
+
+    .item-price {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--accent-bright);
+        margin-bottom: 15px;
+    }
+
+    .item-price span {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        font-weight: normal;
+    }
+
+    .key-icon {
+        width: 54px;
+        height: 54px;
+        margin: 0 auto 15px auto;
+        image-rendering: pixelated;
+        filter: drop-shadow(0 0 8px rgba(168, 85, 247, 0.5));
+    }
+
+    .features-list {
+        list-style: none;
+        margin-bottom: 20px;
+        flex-grow: 1;
+    }
+
+    .features-list li {
+        padding: 7px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.03);
+        font-size: 0.9rem;
+        color: #d1d5db;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .features-list li::before {
+        content: "▪";
+        color: var(--accent-bright);
+    }
+
+    .card-btn {
+        background: #581c87;
+        color: #fff;
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        font-weight: bold;
+        text-transform: uppercase;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .card-btn:hover {
+        background: #7e22ce;
+    }
+
+    /* CHECKOUT PANEL */
+    .checkout-panel {
+        background: linear-gradient(135deg, #0d051c, #05010a);
+        border: 2px solid var(--accent-glow);
+        border-radius: 16px;
+        padding: 30px;
+        box-shadow: 0 0 30px rgba(147, 51, 234, 0.2);
+        margin-top: 30px;
+    }
+
+    .checkout-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    @media(max-width: 900px) {
+        sidebar { width: 100%; height: auto; position: relative; }
+        main { margin-left: 0; padding: 20px; }
+        body { flex-direction: column; }
+        .checkout-grid { grid-template-columns: 1fr; }
+    }
+
+    .form-control {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 15px;
+    }
+
+    label {
+        font-size: 0.85rem;
+        color: var(--accent-bright);
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    input, select {
+        background: #030105;
+        border: 1px solid var(--border-void);
+        padding: 12px;
+        border-radius: 8px;
+        color: #fff;
+        font-size: 1rem;
+        outline: none;
+    }
+
+    input:focus, select:focus {
+        border-color: var(--accent-bright);
+    }
+
+    .code-output {
+        background: #020003;
+        border: 1px dashed var(--accent-bright);
+        padding: 15px;
+        border-radius: 8px;
+        font-family: monospace;
+        color: #e9d5ff;
+        font-size: 1.05rem;
+        word-break: break-all;
+        margin: 15px 0;
+    }
+
+    .btn-action {
+        padding: 12px 24px;
+        border-radius: 8px;
+        font-weight: bold;
+        text-transform: uppercase;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        transition: 0.2s;
+    }
+
+    .btn-purple {
+        background: #7e22ce;
+        color: #fff;
+        border: none;
+    }
+    .btn-purple:hover { background: #9333ea; }
+
+    .btn-pay {
+        background: linear-gradient(135deg, #7e22ce, #c084fc);
+        color: #fff;
+        border: none;
+        box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
+    }
+
+    /* RULES & CREATOR */
+    .content-box {
+        background: var(--bg-panel);
+        border: 1px solid var(--border-void);
+        border-radius: 16px;
+        padding: 35px;
+        line-height: 1.7;
+    }
+
+    .content-box h3 {
+        color: var(--accent-bright);
+        margin: 25px 0 10px 0;
+        font-size: 1.3rem;
+    }
+    .content-box h3:first-child { margin-top: 0; }
+    .content-box p, .content-box li { color: #cbd5e1; margin-bottom: 8px; }
+    .content-box ul { padding-left: 20px; }
+
+    .creator-profile {
+        text-align: center;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .creator-avatar {
+        width: 110px;
+        height: 110px;
+        border-radius: 50%;
+        border: 3px solid var(--accent-bright);
+        box-shadow: 0 0 25px rgba(168, 85, 247, 0.5);
+        margin-bottom: 20px;
+        object-fit: cover;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR NAVIGATION -->
+<sidebar>
+    <div>
+        <div class="brand-area">
+            <img src="server-icon.png" alt="Void Logo" class="server-logo">
+            <h1>VOID SMP 2.0</h1>
+        </div>
+        <div class="nav-menu">
+            <button class="nav-item active" onclick="switchSection('sklep', this)">🛒 Sklep Główny</button>
+            <button class="nav-item" onclick="switchSection('regulamin', this)">📜 Regulamin Serwera</button>
+            <button class="nav-item" onclick="switchSection('tworca', this)">🎥 Twórca & YouTube</button>
+        </div>
+    </div>
+    <div class="sidebar-footer">
+        <p>VOID SMP © 2026</p>
+        <p style="font-size:0.75rem; color:#6b7280; margin-top:4px;">Stworzone dla Otchłani</p>
+    </div>
+</sidebar>
+
+<!-- MAIN VIEW -->
+<main>
+
+    <!-- SECTION 1: SKLEP -->
+    <section id="sklep" class="section-view active">
+        <h2 class="page-title">Sklep Otchłani</h2>
+        <p class="page-desc">Wybierz rangę lub zestaw kluczy i wygeneruj bezpieczną płatność Tipply.</p>
+
+        <h3 style="color:#e9d5ff; margin-bottom:20px; font-size:1.4rem;">✨ Rangi Serwerowe (30 Dni)</h3>
+        <div class="grid-container">
+            <div class="card" onclick="quickSelect('Ranga Cień', '5 PLN')">
+                <div class="item-name">Cień</div>
+                <div class="item-price">5 PLN <span>/ 30d</span></div>
+                <ul class="features-list">
+                    <li>Kit co 24h (Żelazo Prot 2)</li>
+                    <li>Komenda /near co 5 min</li>
+                    <li>Unikalny prefiks na chacie</li>
+                </ul>
+                <button class="card-btn">Wybierz</button>
+            </div>
+
+            <div class="card" onclick="quickSelect('Ranga Widmo', '10 PLN')">
+                <div class="item-name">Widmo</div>
+                <div class="item-price">10 PLN <span>/ 30d</span></div>
+                <ul class="features-list">
+                    <li>Kit co 12h (Żelazo Prot 4)</li>
+                    <li>Komenda /near co 3 min</li>
+                    <li>Przenośny /craft</li>
+                </ul>
+                <button class="card-btn">Wybierz</button>
+            </div>
+
+            <div class="card" onclick="quickSelect('Ranga Odchłań', '22 PLN')">
+                <div class="item-name">Odchłań</div>
+                <div class="item-price">22 PLN <span>/ 30d</span></div>
+                <ul class="features-list">
+                    <li>Kit co 8h (Diament Prot 2)</li>
+                    <li>Komenda /near co 1 min</li>
+                    <li>Dostęp do /craft i /feed</li>
+                </ul>
+                <button class="card-btn">Wybierz</button>
+            </div>
+
+            <div class="card featured" onclick="quickSelect('Ranga Void', '45 PLN')">
+                <div class="card-badge">Top</div>
+                <div class="item-name">Void</div>
+                <div class="item-price">45 PLN <span>/ 30d</span></div>
+                <ul class="features-list">
+                    <li>Kit co 6h (Diament Prot 4 + Eff 5)</li>
+                    <li>Komenda /near bez cooldownu</li>
+                    <li>Pełny pakiet perków</li>
+                </ul>
+                <button class="card-btn">Wybierz</button>
+            </div>
+        </div>
+
+        <h3 style="color:#e9d5ff; margin: 40px 0 20px 0; font-size:1.4rem;">🔑 Klucze do Skrzynek</h3>
+        <div class="grid-container">
+            <div class="card" onclick="quickSelect('Klucz Cień x1', '2 PLN')">
+                <img src="pixil-frame-0 (56).png" alt="Klucz Cień" class="key-icon">
+                <div class="card-badge" style="background:#4b5563;">Tanio</div>
+                <div class="item-name">Klucz Cień</div>
+                <div class="item-price">2 PLN <span>/ szt.</span></div>
+                <ul class="features-list">
+                    <li>1 sztuka: 2 PLN</li>
+                    <li>Zestaw 3 szt.: 5 PLN</li>
+                    <li>Zestaw 5 szt.: 7 PLN (Okazja!)</li>
+                </ul>
+                <button class="card-btn" onclick="event.stopPropagation(); quickSelect('Klucz Cień x5 (Zestaw)', '7 PLN')">Zestaw x5</button>
+            </div>
+
+            <div class="card" onclick="quickSelect('Klucz Widmo x1', '6 PLN')">
+                <img src="pixil-frame-0 (57).png" alt="Klucz Widmo" class="key-icon">
+                <div class="item-name">Klucz Widmo</div>
+                <div class="item-price">6 PLN <span>/ szt.</span></div>
+                <ul class="features-list">
+                    <li>1 sztuka: 6 PLN</li>
+                    <li>Zestaw 3 szt.: 15 PLN</li>
+                    <li>Zestaw 5 szt.: 22 PLN</li>
+                </ul>
+                <button class="card-btn" onclick="event.stopPropagation(); quickSelect('Klucz Widmo x5 (Zestaw)', '22 PLN')">Zestaw x5</button>
+            </div>
+
+            <div class="card featured" onclick="quickSelect('Klucz Void x1', '15 PLN')">
+                <img src="pixil-frame-0 (58).png" alt="Klucz Void" class="key-icon">
+                <div class="card-badge">Epickie</div>
+                <div class="item-name">Klucz Void</div>
+                <div class="item-price">15 PLN <span>/ szt.</span></div>
+                <ul class="features-list">
+                    <li>1 sztuka: 15 PLN</li>
+                    <li>Zestaw 3 szt.: 38 PLN</li>
+                    <li>Zestaw 5 szt.: 60 PLN (Rabat!)</li>
+                </ul>
+                <button class="card-btn" onclick="event.stopPropagation(); quickSelect('Klucz Void x5 (Zestaw)', '60 PLN')">Zestaw x5</button>
+            </div>
+        </div>
+
+        <!-- CHECKOUT GENERATOR -->
+        <div class="checkout-panel" id="generatorAnchor">
+            <h3 style="color:#e9d5ff; font-size:1.5rem; margin-bottom:10px;">⚡ Generator Zamówienia Tipply</h3>
+            <p style="color:var(--text-muted); margin-bottom:20px;">Wpisz swój nick, skopiuj wygenerowaną treść i przejdź do wpłaty.</p>
+            
+            <div class="checkout-grid">
+                <div>
+                    <div class="form-control">
+                        <label>Produkt:</label>
+                        <select id="prodSelect" onchange="buildMessage()">
+                            <optgroup label="Rangi">
+                                <option value="Ranga Cień">Ranga Cień (5 PLN)</option>
+                                <option value="Ranga Widmo">Ranga Widmo (10 PLN)</option>
+                                <option value="Ranga Odchłań">Ranga Odchłań (22 PLN)</option>
+                                <option value="Ranga Void">Ranga Void (45 PLN)</option>
+                            </optgroup>
+                            <optgroup label="Klucze Cień">
+                                <option value="Klucz Cień x1">Klucz Cień x1 (2 PLN)</option>
+                                <option value="Klucz Cień x3">Klucz Cień x3 - Zestaw (5 PLN)</option>
+                                <option value="Klucz Cień x5 (Zestaw)">Klucz Cień x5 - Zestaw (7 PLN)</option>
+                            </optgroup>
+                            <optgroup label="Klucze Widmo">
+                                <option value="Klucz Widmo x1">Klucz Widmo x1 (6 PLN)</option>
+                                <option value="Klucz Widmo x3">Klucz Widmo x3 - Zestaw (15 PLN)</option>
+                                <option value="Klucz Widmo x5 (Zestaw)">Klucz Widmo x5 - Zestaw (22 PLN)</option>
+                            </optgroup>
+                            <optgroup label="Klucze Void">
+                                <option value="Klucz Void x1">Klucz Void x1 (15 PLN)</option>
+                                <option value="Klucz Void x3">Klucz Void x3 - Zestaw (38 PLN)</option>
+                                <option value="Klucz Void x5 (Zestaw)">Klucz Void x5 - Zestaw (60 PLN)</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    <div class="form-control">
+                        <label>Twój Nick w grze:</label>
+                        <input type="text" id="nickInput" placeholder="np. Xenio__" oninput="buildMessage()">
+                    </div>
+                </div>
+
+                <div style="display:flex; flex-direction:column; justify-content:space-between;">
+                    <div>
+                        <label>Treść do wklejenia w wiadomości Tipply:</label>
+                        <div class="code-output" id="finalString">Wpisz nick...</div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn-action btn-purple" onclick="copyCode()">📋 Kopiuj</button>
+                        <a href="https://tipply.pl/@xeniotojaa" target="_blank" class="btn-action btn-pay" style="flex-grow:1; text-align:center;">Przejdź do Tipply 🚀</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 2: REGULAMIN -->
+    <section id="regulamin" class="section-view">
+        <h2 class="page-title">Regulamin Serwera</h2>
+        <p class="page-desc">Zasady obowiązujące w otchłani VoidSMP.</p>
+
+        <div class="content-box">
+            <h3>1. Postanowienia Ogólne</h3>
+            <p>Wejście na serwer oznacza pełną akceptację niniejszego regulaminu. Nieznajomość zasad nie zwalnia z ich przestrzegania. Administracja ostatecznie interpretuje wszelkie sporne kwestie.</p>
+            
+            <h3>2. Uczciwa Gra (Anty-Cheat)</h3>
+            <p>Zabronione jest używanie jakichkolwiek cheatów, X-Raya, modyfikacji Freecam dających przewagę, minimap pokazujących graczy czy autoclickerów. Wykrycie niedozwolonego oprogramowania skutkuje natychmiastowym banem.</p>
+            
+            <h3>3. Zasady PvP i Rozgrywki</h3>
+            <p>Zakaz spawn-killingu. Maksymalna wielkość teamu (dystryktu) to 3 osoby. Zakaz tworzenia wielkich sojuszy i masowego nękania. Gracze AFK są całkowicie nietykalni.</p>
+            
+            <h3>4. Szacunek do Graczy i Ich Pracy</h3>
+            <p>Zakaz grifowania baz, niszczenia farm oraz celowego psucia zabawy innym (grieferstwo). Kradzież ze skrzyń jest dozwolona wyłącznie wtedy, gdy zostały znalezione w sposób uczciwy.</p>
+            
+            <h3>5. Kultura i Stabilność</h3>
+            <p>Bezwzględny zakaz mowy nienawiści, rasizmu, wulgarności oraz celowego lagowania serwera (lag-machines).</p>
+
+            <div style="background: rgba(126, 34, 206, 0.15); border-left: 4px solid #a855f7; padding: 15px; margin-top: 25px; border-radius: 0 8px 8px 0;">
+                <p style="color:#f3e8ff; font-weight:bold; margin:0;">🛡️ Konsekwencje: Ostrzeżenie, TempBan lub Permanentny Ban. Grasz fair, bawisz się dobrze!</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECTION 3: TWÓRCA -->
+    <section id="tworca" class="section-view">
+        <h2 class="page-title">Twórca Projektu</h2>
+        <p class="page-desc">Poznaj osobę stojącą za serwerem Void SMP.</p>
+
+        <div class="content-box creator-profile">
+            <img src="Xenio___face (1).png" alt="Xenio Avatar" class="creator-avatar">
+            <h3 style="font-size: 1.8rem; color:#fff; margin-bottom:5px;">Xenio__</h3>
+            <p style="color:var(--accent-bright); margin-bottom: 20px; font-weight:600;">Właściciel i Twórca VOID SMP 2.0</p>
+            <p style="color:#cbd5e1; margin-bottom: 25px; line-height: 1.6;">
+                Projekt tworzony z pasją dla graczy ceniących dobry survival, zbalansowane mechaniki i unikalny mroczny klimat. Sprawdź kanał YouTube po nowości i materiały z serwera!
+            </p>
+            <a href="https://www.youtube.com/@XenioJa" target="_blank" class="btn-action btn-purple" style="background:#ff0000; box-shadow:0 0 15px rgba(255,0,0,0.4);">
+                ▶ Oglądaj YouTube (@XenioJa)
+            </a>
+        </div>
+    </section>
+
+</main>
+
+<script>
+    function switchSection(sectionId, btnElement) {
+        document.querySelectorAll('.section-view').forEach(sec => sec.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active'));
+
+        document.getElementById(sectionId).classList.add('active');
+        btnElement.classList.add('active');
+    }
+
+    function quickSelect(productName, price) {
+        const select = document.getElementById('prodSelect');
+        for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].value === productName) {
+                select.selectedIndex = i;
+                break;
+            }
+        }
+        buildMessage();
+        document.getElementById('generatorAnchor').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function buildMessage() {
+        const prod = document.getElementById('prodSelect').value;
+        const nick = document.getElementById('nickInput').value.trim() || "[TWÓJ_NICK]";
+        const text = `${prod} - ${nick}`;
+        document.getElementById('finalString').innerText = text;
+    }
+
+    function copyCode() {
+        const text = document.getElementById('finalString').innerText;
+        navigator.clipboard.writeText(text).then(() => {
+            alert("Skopiowano treść do schowka! Wklej ją w wiadomości na Tipply.");
+        });
+    }
+
+    buildMessage();
+</script>
+
+</body>
+</html>
